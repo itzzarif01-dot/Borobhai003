@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বড় ভাই - Premium Marketplace</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Hind+Siliguri:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --accent-color: #c9a050; /* Luxury Gold */
+            --card-bg: #1a1d29;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* প্রফেশনাল নেভিগেশন */
+        nav {
+            padding: 1.5rem 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 17, 26, 0.95);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: var(--accent-color); 
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+
+        .container { max-width: 1100px; margin: 3rem auto; padding: 0 20px; }
+        
+        /* প্রিমিয়াম কার্ড ডিজাইন */
+        .card {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--glass);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 12px 0;
+            border-radius: 12px;
+            border: 1px solid #2d3142;
+            background: #131620;
+            color: #fff;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent-color); outline: none; }
+
+        .btn-premium {
+            background: var(--accent-color);
+            color: #000;
+            padding: 16px;
+            border: none;
+            width: 100%;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            margin-top: 10px;
+        }
+
+        .btn-premium:hover { 
+            background: #e2b65f; 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(201, 160, 80, 0.2);
+        }
+
+        /* প্রোডাক্ট গ্রিড */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 2rem; 
+            margin-top: 2rem;
+        }
+        
+        .p-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--glass);
+            transition: 0.4s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .p-card:hover { 
+            border-color: var(--accent-color); 
+            transform: scale(1.02);
+        }
+        
+        .price-tag { 
+            color: var(--accent-color); 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin: 1rem 0;
+        }
+
+        .hidden { display: none; }
+        
+        .nav-info { font-size: 0.9rem; color: var(--text-dim); }
+
+        /* পেমেন্ট এলার্ট বক্স */
+        .alert-box {
+            border-left: 4px solid var(--accent-color);
+            background: rgba(201, 160, 80, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="#" class="logo">BORO BHAI</a>
+    <div id="user-nav" class="hidden nav-info">
+        <span id="welcome-msg"></span> | 
+        <span onclick="logout()" style="color:#ff5e5e; cursor:pointer; font-weight:600;">Log Out</span>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="auth-section">
+        <div class="card" id="signup-form">
+            <h2 style="text-align:center; font-weight: 700;">Create Account</h2>
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="email" id="reg-email" placeholder="Email Address">
+            <input type="tel" id="reg-phone" placeholder="Phone Number">
+            <select id="reg-role">
+                <option value="customer">I want to Buy</option>
+                <option value="seller">I want to Sell</option>
+            </select>
+            <input type="password" id="reg-pass" placeholder="Create Password">
+            <button class="btn-premium" onclick="signup()">Sign Up</button>
+            <p style="text-align:center; color: var(--text-dim); margin-top: 20px;">
+                Already have an account? <a href="#" onclick="toggleAuth()" style="color:var(--accent-color); text-decoration:none;">Login</a>
+            </p>
+        </div>
+
+        <div class="card hidden" id="login-form">
+            <h2 style="text-align:center; font-weight: 700;">Welcome Back</h2>
+            <input type="email" id="login-email" placeholder="Email Address">
+            <input type="password" id="login-pass" placeholder="Password">
+            <button class="btn-premium" onclick="login()">Login to Dashboard</button>
+            <p style="text-align:center; color: var(--text-dim); margin-top: 20px;">
+                New here? <a href="#" onclick="toggleAuth()" style="color:var(--accent-color); text-decoration:none;">Create Account</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <div id="seller-tools" class="card hidden" style="margin-bottom: 3rem;">
+            <h3 style="margin-top:0;">Post New Product</h3>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                <input type="text" id="pTitle" placeholder="Product Title">
+                <input type="number" id="pPrice" placeholder="Price (৳)">
+            </div>
+            <textarea id="pDesc" style="height:100px; resize: none;" placeholder="Write a short description about what you're selling..."></textarea>
+            <button class="btn-premium" onclick="postAd()">Publish Item</button>
+        </div>
+
+        <h2 style="text-align:center; letter-spacing: 1px;">Marketplace</h2>
+        <div id="product-list" class="product-grid">
+            </div>
+    </div>
+
+</div>
+
+<script>
+    // --- INSERT YOUR FIREBASE CONFIG HERE ---
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+        projectId: "YOUR_PROJECT",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function toggleAuth() {
+        document.getElementById('signup-form').classList.toggle('hidden');
+        document.getElementById('login-form').classList.toggle('hidden');
+    }
+
+    function signup() {
+        const email = document.getElementById('reg-email').value;
+        const pass = document.getElementById('reg-pass').value;
+        const name = document.getElementById('reg-name').value;
+        const role = document.getElementById('reg-role').value;
+        const phone = document.getElementById('reg-phone').value;
+
+        if(!email || !pass || !name) return alert("Please fill all fields!");
+
+        auth.createUserWithEmailAndPassword(email, pass).then(res => {
+            db.ref('users/' + res.user.uid).set({ name, role, phone });
+            alert("Account created successfully!");
+        }).catch(e => alert(e.message));
+    }
+
+    function login() {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('user-nav').classList.remove('hidden');
+            
+            db.ref('users/' + user.uid).once('value').then(snap => {
+                const data = snap.val();
+                document.getElementById('welcome-msg').innerText = "Hello, " + (data ? data.name : "User");
+                if(data && data.role === 'seller') document.getElementById('seller-tools').classList.remove('hidden');
+            });
+            loadProducts();
+        } else {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('user-nav').classList.add('hidden');
+        }
+    });
+
+    function postAd() {
+        const title = document.getElementById('pTitle').value;
+        const price = document.getElementById('pPrice').value;
+        if(!title || !price) return alert("Fill title and price!");
+
+        db.ref('products').push({
+            title: title,
+            price: price,
+            desc: document.getElementById('pDesc').value,
+            sellerId: auth.currentUser.uid
+        }).then(() => {
+            alert("Product is now live!");
+            document.getElementById('pTitle').value = "";
+            document.getElementById('pPrice').value = "";
+            document.getElementById('pDesc').value = "";
+        });
+    }
+
+    function loadProducts() {
+        db.ref('products').on('value', snap => {
+            const list = document.getElementById('product-list');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const p = child.val();
+                list.innerHTML += `
+                    <div class="p-card">
+                        <div>
+                            <h3 style="margin-top:0; font-size:1.3rem;">${p.title}</h3>
+                            <p style="color:var(--text-dim); font-size:0.95rem;">${p.desc}</p>
+                        </div>
+                        <div>
+                            <div class="price-tag">৳${p.price}</div>
+                            <button class="btn-premium" onclick="order('${p.title}', '${p.price}')">Order Now</button>
+                        </div>
+                    </div>`;
+            });
+        });
+    }
+
+    function order(title, price) {
+        alert("Payment Required: ৳" + price + "\nBkash/Nagad: 01948084135\nSend us a mail with transaction ID.");
+        window.location.href = `mailto:itzzarif01@gmail.com?subject=Order:${title}`;
+    }
+
+    function logout() { auth.signOut(); }
+</script>
+
+</body>
+</html>
